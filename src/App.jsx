@@ -1,9 +1,23 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const defaultShoes = [
   { id: 1, name: "Nike Pegasus 40", brand: "Nike", goal: 300, walking: 42.3, running: 88.7, image: null, color: "#FF6B35", archived: false },
   { id: 2, name: "Brooks Ghost 15", brand: "Brooks", goal: 400, walking: 15.1, running: 210.4, image: null, color: "#4ECDC4", archived: false },
 ];
+
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved !== null ? JSON.parse(saved) : initial;
+    } catch { return initial; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(value)); }
+    catch { /* quota exceeded or private mode */ }
+  }, [key, value]);
+  return [value, setValue];
+}
 
 function CircleProgress({ value, max, color, size = 80 }) {
   const r = (size - 10) / 2;
@@ -478,8 +492,8 @@ function ArchivedList({ shoes, onRestore, onDelete }) {
 }
 
 export default function App() {
-  const [shoes, setShoes] = useState(defaultShoes);
-  const [nextId, setNextId] = useState(3);
+  const [shoes, setShoes] = useLocalStorage('solelog-shoes', defaultShoes);
+  const [nextId, setNextId] = useLocalStorage('solelog-nextid', 3);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [tab, setTab] = useState("active");
   const [showAdd, setShowAdd] = useState(false);
